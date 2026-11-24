@@ -69,6 +69,13 @@ jobs:
       - name: Build installer
         run: npm run dist:win
 
+      - name: Verify PresentMon is packaged
+        shell: pwsh
+        run: |
+          $p = 'dist/win-unpacked/resources/resources/presentmon/PresentMon.exe'
+          if (-not (Test-Path $p)) { throw "Bundled PresentMon missing: $p" }
+          Write-Host "Packaged: $p ($((Get-Item $p).Length) bytes)"
+
       - name: Upload installer artifact
         uses: actions/upload-artifact@v4
         with:
