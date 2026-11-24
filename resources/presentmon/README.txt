@@ -1,4 +1,4 @@
-Intel PresentMon console application (v2.6.1, MIT license, Copyright Intel Corporation).
+Intel PresentMon console application (newest stable release at build time, MIT license, Copyright Intel Corporation).
 https://github.com/GameTechDev/PresentMon
 
 PresentMon.exe is downloaded from the official GitHub release and its Intel Authenticode

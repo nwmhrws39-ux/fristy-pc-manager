@@ -31,13 +31,19 @@ jobs:
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
-          PRESENTMON_TAG: v2.6.1
         run: |
           $ErrorActionPreference = 'Stop'
-          $names = gh release view $env:PRESENTMON_TAG --repo GameTechDev/PresentMon --json assets --jq '.assets[].name'
-          $asset = $names | Where-Object { $_ -match '^PresentMon-[\d.]+-x64\.exe$' } | Select-Object -First 1
-          if (-not $asset) { throw "PresentMon console asset not found. Assets: $($names -join ', ')" }
-          gh release download $env:PRESENTMON_TAG --repo GameTechDev/PresentMon --pattern $asset --dir $env:RUNNER_TEMP --clobber
+          # Newest stable PresentMon release that ships the console exe (the Intel signature is verified below).
+          $releases = gh release list --repo GameTechDev/PresentMon --limit 15 --exclude-pre-releases --exclude-drafts --json tagName --jq '.[].tagName'
+          $tag = $null; $asset = $null
+          foreach ($r in $releases) {
+            $names = gh release view $r --repo GameTechDev/PresentMon --json assets --jq '.assets[].name'
+            $hit = $names | Where-Object { $_ -match '^PresentMon-[\d.]+-x64\.exe$' } | Select-Object -First 1
+            if ($hit) { $tag = $r; $asset = $hit; break }
+          }
+          if (-not $asset) { throw "No PresentMon console asset found in releases: $($releases -join ', ')" }
+          Write-Host "Using PresentMon $tag ($asset)"
+          gh release download $tag --repo GameTechDev/PresentMon --pattern $asset --dir $env:RUNNER_TEMP --clobber
           New-Item -ItemType Directory -Force resources/presentmon | Out-Null
           Move-Item (Join-Path $env:RUNNER_TEMP $asset) resources/presentmon/PresentMon.exe -Force
           $sig = Get-AuthenticodeSignature resources/presentmon/PresentMon.exe
