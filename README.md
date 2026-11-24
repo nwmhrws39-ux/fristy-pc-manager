@@ -151,5 +151,5 @@ The overlay is an ordinary transparent, click-through, always-on-top desktop win
 - ✅ Windowed and borderless-windowed ("fullscreen windowed") games and apps.
 - ❌ **Exclusive fullscreen** DirectX/Vulkan games, which draw over every desktop window. Switch the game to borderless mode.
 - ❌ Games running as administrator, or protected full-screen experiences, may hide it.
-- FPS needs Intel PresentMon (console version) configured under **Settings → Gaming overlay**, with FRISTY running as administrator. Otherwise FPS shows N/A.
+- FPS needs the **PresentMon console version** (`PresentMon-<version>-x64.exe` from https://github.com/GameTechDev/PresentMon/releases). The graphical Intel PresentMon app (`C:\Program Files\Intel\PresentMon\PresentMonApplication`) can't stream data to other programs, so it won't work. Enter the path to the console `.exe`, or the folder that contains it, under **Settings → Gaming overlay**, and run FRISTY as administrator. FPS then shows on the Overview page and in the overlay. Settings tells you exactly what is missing.
 - Toggle hotkey: **Ctrl+Shift+O**.

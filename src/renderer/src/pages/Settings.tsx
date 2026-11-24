@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
-import { Bell, Gamepad2, Gauge, Info, Languages, Palette, Power, ShieldCheck, ShieldAlert } from 'lucide-react'
+import { Bell, Download, Gamepad2, Gauge, Info, Languages, Palette, Power, ShieldCheck, ShieldAlert } from 'lucide-react'
 import type { OverlayPosition, Threshold } from '@shared/settings'
 import { api } from '../api'
 import { useStore } from '../store'
 import { Card, Note, PageHeader, Segmented, Toggle } from '../components/ui'
 import { tempVal } from '../format'
+import type { I18nKey } from '../i18n'
 
 const ACCENTS = ['#8b5cf6', '#a855f7', '#6366f1', '#ec4899', '#06b6d4', '#10b981', '#f59e0b', '#ef4444']
 
@@ -42,6 +43,20 @@ export function SettingsPage() {
   const [pm, setPm] = useState(s.presentMonPath)
   useEffect(() => void api.overlayCompat().then(setCompat), [s.overlay.enabled, s.presentMonPath])
   useEffect(() => setPm(s.presentMonPath), [s.presentMonPath])
+
+  const savePm = async () => {
+    const r = await api.resolvePresentMon(pm)
+    if (!r.ok) return toast(t(r.code === 'gui-app' ? 'fps.gui-app' : 'fps.not-found'), 'err')
+    setPm(r.path)
+    await setSettings({ presentMonPath: r.path })
+    toast(r.path ? `✓ ${r.path}` : '✓')
+    setTimeout(() => void api.overlayCompat().then(setCompat), 2500)
+  }
+  useEffect(() => {
+    if (!s.presentMonPath) return
+    const id = setInterval(() => void api.overlayCompat().then(setCompat), 3000)
+    return () => clearInterval(id)
+  }, [s.presentMonPath])
 
   const unit = s.tempUnit
   // Temperature thresholds are stored in °C; displayed/entered in the selected unit.
@@ -140,11 +155,22 @@ export function SettingsPage() {
               <div>
                 <div className="label mb-1">{t('set.presentmon')}</div>
                 <div className="flex gap-2">
-                  <input className="input flex-1 font-mono text-[12px]" dir="ltr" placeholder="C:\Tools\PresentMon.exe" value={pm} onChange={(e) => setPm(e.target.value)} />
-                  <button className="btn" onClick={() => void setSettings({ presentMonPath: pm }).then(() => toast('✓'))}>OK</button>
+                  <input className="input flex-1 font-mono text-[12px]" dir="ltr" placeholder="C:\Tools\PresentMon-2.3.1-x64.exe" value={pm} onChange={(e) => setPm(e.target.value)} />
+                  <button className="btn" onClick={() => void savePm()}>{t('cool.save')}</button>
                 </div>
                 <div className="mt-1 text-[11.5px] text-muted">{t('set.presentmonNote')}</div>
-                {compat && <div className="mt-1 text-[11.5px]">{t('set.fpsStatus')}: <span className={compat.fpsStatus === 'error' ? 'text-bad' : 'text-muted'}>{compat.fpsStatus}{compat.fpsError ? ` — ${compat.fpsError}` : ''}{compat.fpsApp ? ` (${compat.fpsApp})` : ''}</span></div>}
+                {compat && s.presentMonPath && (
+                  <div className={`mt-2 rounded-lg border px-3 py-2 text-[12px] ${compat.fpsCode === 'running' ? 'border-ok/40' : 'border-bad/40'}`}>
+                    <div>{t('set.fpsStatus')}: <span className={compat.fpsCode === 'running' ? 'text-ok' : 'text-bad'}>{t(`fps.${compat.fpsCode}` as I18nKey)}</span>{compat.fpsApp ? ` (${compat.fpsApp})` : ''}</div>
+                    {compat.fpsCode === 'failed' && compat.fpsError && <div className="mt-1 font-mono text-[11px] text-muted" dir="ltr">{compat.fpsError}</div>}
+                  </div>
+                )}
+                <div className="mt-2 flex flex-wrap gap-2">
+                  <button className="btn" onClick={() => void api.presentMonWebsite()}><Download size={14} /> {t('fps.download')}</button>
+                  {app?.isWindows && !app.isAdmin && s.presentMonPath && (
+                    <button className="btn" onClick={() => void api.relaunchAdmin().then((r) => !r.ok && r.error !== 'cancelled' && toast(r.error ?? '', 'err'))}><ShieldCheck size={14} /> {t('common.restartAdmin')}</button>
+                  )}
+                </div>
               </div>
               <div>
                 <div className="label mb-1">{t('set.compat')}</div>

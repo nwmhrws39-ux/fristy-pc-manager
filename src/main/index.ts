@@ -13,6 +13,7 @@ import { StartupManager } from './startup'
 import { listProcesses, killProcess, findProcess } from './processes'
 import { AlertEngine } from './alerts'
 import { OverlayWindow, overlayCompat } from './overlay'
+import { PRESENTMON_RELEASES, resolvePresentMonOnDisk } from './sensors/fps'
 import { specsToText } from './specs'
 import { isTrustedRendererUrl } from './security'
 import { FANCONTROL_SITE, fanControlStatus, installFanControl, launchFanControl } from './fancontrol'
@@ -170,7 +171,8 @@ function applySettings(patch: unknown): Settings {
   const s = settings.update(patch)
   if (app.isPackaged && isWin && prev.startWithWindows !== s.startWithWindows) app.setLoginItemSettings({ openAtLogin: s.startWithWindows, args: ['--hidden'] })
   overlay.apply(s)
-  if (s.overlay.enabled && s.overlay.metrics.fps && s.presentMonPath) monitor.fps.start(s.presentMonPath)
+  // FPS runs whenever PresentMon is configured (shown on the Overview page and in the overlay).
+  if (s.presentMonPath) monitor.fps.start(s.presentMonPath, isAdmin)
   else monitor.fps.stop()
   if (registeredHotkey !== s.overlay.hotkey) {
     if (registeredHotkey) globalShortcut.unregister(registeredHotkey)
@@ -291,7 +293,9 @@ function registerIpc(): void {
     app.quit()
     return { ok: true }
   })
-  handle(IPC.overlayCompat, none, () => ({ ...overlayCompat(), fpsStatus: monitor.fps.status, fpsError: monitor.fps.error, fpsApp: monitor.fps.app }))
+  handle(IPC.overlayCompat, none, () => ({ ...overlayCompat(), fpsStatus: monitor.fps.status, fpsCode: monitor.fps.code, fpsError: monitor.fps.error, fpsApp: monitor.fps.app }))
+  handle(IPC.resolvePresentMon, (a) => (a.length === 1 && typeof a[0] === 'string' && a[0].length <= 300 ? [a[0]] : null), (input: string) => resolvePresentMonOnDisk(input))
+  handle(IPC.presentMonWebsite, none, async () => (await shell.openExternal(PRESENTMON_RELEASES), { ok: true }))
   handle(IPC.fanControlStatus, none, () => fanControlStatus(settings.get().fanControlPath))
   handle(IPC.fanControlLaunch, none, () => launchFanControl(settings.get().fanControlPath))
   handle(IPC.fanControlInstall, none, async (): Promise<ActionResult> => {

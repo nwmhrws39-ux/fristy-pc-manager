@@ -25,6 +25,8 @@ const api = {
   setSettings: invoke(IPC.setSettings),
   relaunchAdmin: invoke(IPC.relaunchAdmin),
   overlayCompat: invoke(IPC.overlayCompat),
+  resolvePresentMon: invoke(IPC.resolvePresentMon),
+  presentMonWebsite: invoke(IPC.presentMonWebsite),
   fanControlStatus: invoke(IPC.fanControlStatus),
   fanControlLaunch: invoke(IPC.fanControlLaunch),
   fanControlInstall: invoke(IPC.fanControlInstall),

@@ -132,3 +132,25 @@ describe('FanControl detection', () => {
     expect(resolveFanControl({ ...none, running: '?' }, '', [], () => false)).toMatchObject({ installed: true, running: true, path: '' })
   })
 })
+
+import { resolvePresentMonPath, isPresentMonGui } from '../src/main/sensors/fps'
+
+describe('PresentMon path resolution', () => {
+  const files: Record<string, string[]> = { 'C:\\Tools': ['PresentMon-2.3.1-x64.exe', 'readme.txt'], 'C:\\Program Files\\Intel\\PresentMon\\PresentMonApplication': ['PresentMon.exe'] }
+  const isFile = (p: string) => p === 'C:\\Tools\\PresentMon-2.3.1-x64.exe'
+  const listDir = (p: string) => files[p] ?? null
+  it('detects the Intel PresentMon GUI install and explains it', () => {
+    expect(isPresentMonGui('C:\\Program Files\\Intel\\PresentMon\\PresentMonApplication')).toBe(true)
+    expect(resolvePresentMonPath('C:\\Program Files\\Intel\\PresentMon\\PresentMonApplication', isFile, listDir)).toMatchObject({ ok: false, code: 'gui-app' })
+    expect(resolvePresentMonPath('C:\\Program Files\\Intel\\PresentMon\\PresentMonApplication\\PresentMon.exe', isFile, listDir).code).toBe('gui-app')
+  })
+  it('accepts the console exe directly, or finds it inside a folder', () => {
+    expect(resolvePresentMonPath('"C:\\Tools\\PresentMon-2.3.1-x64.exe"', isFile, listDir)).toEqual({ ok: true, path: 'C:\\Tools\\PresentMon-2.3.1-x64.exe' })
+    expect(resolvePresentMonPath('C:\\Tools', isFile, listDir)).toEqual({ ok: true, path: 'C:\\Tools\\PresentMon-2.3.1-x64.exe' })
+  })
+  it('rejects missing files and other executables; empty clears the setting', () => {
+    expect(resolvePresentMonPath('C:\\Nope\\PresentMon.exe', isFile, listDir).code).toBe('not-found')
+    expect(resolvePresentMonPath('C:\\Windows\\notepad.exe', () => true, listDir).code).toBe('not-found')
+    expect(resolvePresentMonPath('  ', isFile, listDir)).toEqual({ ok: true, path: '' })
+  })
+})

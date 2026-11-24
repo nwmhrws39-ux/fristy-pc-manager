@@ -22,6 +22,8 @@ export const IPC = {
   confirm: 'dialog:confirm',
   relaunchAdmin: 'app:relaunchAdmin',
   overlayCompat: 'overlay:compat',
+  resolvePresentMon: 'fps:resolve',
+  presentMonWebsite: 'fps:website',
   fanControlStatus: 'fan:status',
   fanControlLaunch: 'fan:launch',
   fanControlInstall: 'fan:install',

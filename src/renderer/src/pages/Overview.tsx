@@ -1,4 +1,4 @@
-import { ArrowDown, ArrowUp, Clock, Cpu, Fan, Gpu, HardDrive, Info, MemoryStick, Network, Thermometer, Zap, Activity } from 'lucide-react'
+import { Gamepad2, ArrowDown, ArrowUp, Clock, Cpu, Fan, Gpu, HardDrive, Info, MemoryStick, Network, Thermometer, Zap, Activity } from 'lucide-react'
 import { useStore } from '../store'
 import { Card, Meter, Note, PageHeader, Ring, Stat, StatusDot } from '../components/ui'
 import { LiveChart, S1, S2, S3 } from '../components/LiveChart'
@@ -122,6 +122,7 @@ export function Overview() {
           <div className="space-y-3">
             <Stat label={t('ov.uptime')} value={duration(snap.uptimeSec, settings.language)} />
             <Stat label={t('ov.power')} value={watts(snap.powerW)} sub={t('ov.powerNote')} icon={Zap} />
+            {settings.presentMonPath && <Stat label={t('fps.fps')} value={snap.fps !== null ? String(snap.fps) : 'N/A'} icon={Gamepad2} />}
           </div>
         </Card>
       </div>
