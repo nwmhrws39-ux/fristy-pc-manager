@@ -51,12 +51,20 @@ jobs:
           Write-Host "Signature: $($sig.Status) / $($sig.SignerCertificate.Subject)"
           if ($sig.Status -ne 'Valid' -or $sig.SignerCertificate.Subject -notmatch 'Intel') { throw 'PresentMon signature is not a valid Intel signature' }
 
-      - name: Smoke-test PresentMon output format
+      # The runner is headless, so usually no app presents frames and PresentMon prints no CSV at all
+      # (it writes the header with the first frame). We require a clean run (ETW session starts, no
+      # access errors) and verify the CSV columns whenever any output was produced.
+      - name: Smoke-test PresentMon
         shell: pwsh
         run: |
-          $out = & resources/presentmon/PresentMon.exe --output_stdout --no_console_stats --stop_existing_session --session_name FristyCI --timed 3 --terminate_after_timed 2>&1 | Select-Object -First 3
-          Write-Host ($out -join "`n")
-          if (-not ($out -match 'Application') -or -not ($out -match 'MsBetweenPresents|FrameTime')) { throw 'PresentMon CSV header does not contain the columns FRISTY reads' }
+          $out = & resources/presentmon/PresentMon.exe --output_stdout --no_console_stats --stop_existing_session --session_name FristyCI --timed 3 --terminate_after_timed 2>&1
+          $code = $LASTEXITCODE
+          Write-Host "exit code: $code"
+          Write-Host (($out | Select-Object -First 3) -join "`n")
+          if ($out -match 'access denied|failed to start|error') { throw 'PresentMon failed to start a trace session' }
+          if ($code -ne 0) { throw "PresentMon exited with $code" }
+          $header = $out | Where-Object { $_ -match '^Application,' } | Select-Object -First 1
+          if ($header -and $header -notmatch 'MsBetweenPresents|FrameTime') { throw 'PresentMon CSV header does not contain the columns FRISTY reads' }
 
       - name: Build installer
         run: npm run dist:win
