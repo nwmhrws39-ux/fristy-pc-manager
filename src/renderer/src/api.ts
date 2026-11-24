@@ -1,5 +1,5 @@
 import type { Settings } from '@shared/settings'
-import type { ActionResult, AppInfo, HistoryPoint, HistoryRange, HistoryStats, OverlayCompat, ProcessInfo, Snapshot, StartupItem, StaticInfo } from '@shared/types'
+import type { ActionResult, AppInfo, FanControlStatus, HistoryPoint, HistoryRange, HistoryStats, OverlayCompat, ProcessInfo, Snapshot, StartupItem, StaticInfo } from '@shared/types'
 import type { PushChannel } from '@shared/ipc'
 
 export interface FristyApi {
@@ -23,6 +23,10 @@ export interface FristyApi {
   setSettings(patch: DeepPartial<Settings>): Promise<Settings>
   relaunchAdmin(): Promise<ActionResult>
   overlayCompat(): Promise<OverlayCompat & { fpsStatus: string; fpsError: string; fpsApp: string }>
+  fanControlStatus(): Promise<FanControlStatus>
+  fanControlLaunch(): Promise<ActionResult>
+  fanControlInstall(): Promise<ActionResult>
+  fanControlWebsite(): Promise<ActionResult>
   winMinimize(): Promise<void>
   winMaximize(): Promise<void>
   winClose(): Promise<void>

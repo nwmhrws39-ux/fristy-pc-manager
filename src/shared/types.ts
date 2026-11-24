@@ -245,3 +245,11 @@ export interface OverlayCompat {
   supported: boolean
   notes: string[]
 }
+
+export interface FanControlStatus {
+  supported: boolean
+  installed: boolean
+  running: boolean
+  path: string
+  source: 'running' | 'registry' | 'winget' | 'common' | 'custom' | ''
+}

@@ -15,6 +15,7 @@ import { AlertEngine } from './alerts'
 import { OverlayWindow, overlayCompat } from './overlay'
 import { specsToText } from './specs'
 import { isTrustedRendererUrl } from './security'
+import { FANCONTROL_SITE, fanControlStatus, installFanControl, launchFanControl } from './fancontrol'
 import { isWin, psQuote, runPowerShell } from './ps'
 
 const isDev = !app.isPackaged && !!process.env.ELECTRON_RENDERER_URL
@@ -291,6 +292,19 @@ function registerIpc(): void {
     return { ok: true }
   })
   handle(IPC.overlayCompat, none, () => ({ ...overlayCompat(), fpsStatus: monitor.fps.status, fpsError: monitor.fps.error, fpsApp: monitor.fps.app }))
+  handle(IPC.fanControlStatus, none, () => fanControlStatus(settings.get().fanControlPath))
+  handle(IPC.fanControlLaunch, none, () => launchFanControl(settings.get().fanControlPath))
+  handle(IPC.fanControlInstall, none, async (): Promise<ActionResult> => {
+    const he = settings.get().language === 'he'
+    const ok = await confirm(
+      he ? 'להתקין את FanControl דרך winget?' : 'Install FanControl with winget?',
+      he ? 'ייפתח חלון פקודה שמריץ את חבילת winget הרשמית Rem0o.FanControl. Windows יבקש הרשאת מנהל.' : 'A command window will open and run the official winget package Rem0o.FanControl. Windows will ask for administrator permission.',
+      he ? 'התקן' : 'Install'
+    )
+    return ok ? installFanControl() : { ok: false, error: 'cancelled' }
+  })
+  // Fixed, hard-coded URL only — the renderer cannot open arbitrary links.
+  handle(IPC.fanControlWebsite, none, async () => (await shell.openExternal(FANCONTROL_SITE), { ok: true }))
   handle(IPC.winMinimize, none, () => mainWindow?.minimize())
   handle(IPC.winMaximize, none, () => (mainWindow?.isMaximized() ? mainWindow.unmaximize() : mainWindow?.maximize()))
   handle(IPC.winClose, none, () => mainWindow?.close())

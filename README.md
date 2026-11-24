@@ -8,6 +8,7 @@ Real-time hardware monitor and PC management tool for **Windows 10 and Windows 1
 - **Hardware inventory** with copy / export (.txt / .json)
 - **Startup manager** (enable/disable the same reversible way Task Manager does, with restore-to-original)
 - **Performance history** stored locally in SQLite, with hour/day/week/month graphs, averages/maximums, CSV export and configurable retention
+- **Cooling page** with fan readings and **fan control through FanControl** (detect, open, install via winget)
 - Optional click-through **gaming overlay** (no game injection)
 - **Alerts** for CPU/GPU temperature, RAM usage, low disk space and SMART health, with thresholds and cooldowns
 - English and Hebrew (full RTL), dark/light theme, custom accent color, °C/°F
@@ -132,6 +133,16 @@ User data is stored in `%APPDATA%\FRISTY PC Manager\`:
 - The app runs as a normal user (`asInvoker`). **Settings → Restart as administrator** elevates through UAC only when you need it: elevated processes, machine-wide startup entries, PresentMon.
 - FRISTY never modifies BIOS, voltages or clocks, never disables Windows security features, never injects into games and never interacts with anti-cheat software.
 - Resource use: one sampler process, no polling of the process list unless the Processes page is open, and no UI updates while minimized. Monitoring slows to every 5 s while the window is hidden and the overlay is off.
+
+## Fan control
+
+The **Cooling** page integrates with [FanControl](https://getfancontrol.com/), a free, open-source fan controller built on LibreHardwareMonitor:
+
+- FRISTY detects FanControl from the running process, its installer's uninstall registry key, the winget package folder, common install folders, or a custom path you set.
+- **Open FanControl** launches it through Windows, which shows FanControl's own UAC prompt.
+- **Install (winget)** opens a visible console that runs the official package `Rem0o.FanControl`, after a confirmation dialog.
+- You create fan curves inside FanControl, for example CPU temperature → CPU fan. FRISTY never writes to fan hardware itself.
+- Some laptops and prebuilt PCs lock fan control in the BIOS/EC. FanControl reports fans it can't control.
 
 ## Gaming overlay compatibility
 

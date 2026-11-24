@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Activity, CircuitBoard, Cpu, Gpu, HardDrive, History, LayoutDashboard, ListTree, MemoryStick, Minus, Network, Rocket, Settings as SettingsIcon, Square, X, Copy, ShieldCheck, CircleCheck, TriangleAlert } from 'lucide-react'
+import { Activity, CircuitBoard, Fan, Cpu, Gpu, HardDrive, History, LayoutDashboard, ListTree, MemoryStick, Minus, Network, Rocket, Settings as SettingsIcon, Square, X, Copy, ShieldCheck, CircleCheck, TriangleAlert } from 'lucide-react'
 import { IPC } from '@shared/ipc'
 import { useStore } from './store'
 import { api } from './api'
@@ -17,6 +17,7 @@ import { HardwarePage } from './pages/Hardware'
 import { StartupPage } from './pages/Startup'
 import { HistoryPage } from './pages/History'
 import { SettingsPage } from './pages/Settings'
+import { CoolingPage } from './pages/Cooling'
 
 const NAV: { id: string; key: I18nKey; icon: typeof Cpu; el: () => JSX.Element }[] = [
   { id: 'overview', key: 'nav.overview', icon: LayoutDashboard, el: Overview },
@@ -25,6 +26,7 @@ const NAV: { id: string; key: I18nKey; icon: typeof Cpu; el: () => JSX.Element }
   { id: 'memory', key: 'nav.memory', icon: MemoryStick, el: MemoryPage },
   { id: 'storage', key: 'nav.storage', icon: HardDrive, el: StoragePage },
   { id: 'network', key: 'nav.network', icon: Network, el: NetworkPage },
+  { id: 'cooling', key: 'nav.cooling', icon: Fan, el: CoolingPage },
   { id: 'processes', key: 'nav.processes', icon: ListTree, el: ProcessesPage },
   { id: 'hardware', key: 'nav.hardware', icon: CircuitBoard, el: HardwarePage },
   { id: 'startup', key: 'nav.startup', icon: Rocket, el: StartupPage },

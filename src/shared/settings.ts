@@ -36,6 +36,8 @@ export interface Settings {
   }
   /** Optional path to Intel PresentMon CLI (ETW based, no injection) used only for FPS readings. */
   presentMonPath: string
+  /** Optional custom path to FanControl.exe when it isn't found automatically. */
+  fanControlPath: string
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -65,7 +67,8 @@ export const DEFAULT_SETTINGS: Settings = {
     hotkey: 'CommandOrControl+Shift+O',
     metrics: { cpu: true, gpu: true, cpuTemp: true, gpuTemp: true, ram: true, vram: true, fps: true }
   },
-  presentMonPath: ''
+  presentMonPath: '',
+  fanControlPath: ''
 }
 
 const isObj = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v)
@@ -86,6 +89,7 @@ export function sanitizeSettings(input: unknown, base: Settings = DEFAULT_SETTIN
   const o = isObj(i.overlay) ? i.overlay : {}
   const om = isObj(o.metrics) ? o.metrics : {}
   const sh = isObj(a.storageHealth) ? a.storageHealth : {}
+  const fc = typeof i.fanControlPath === 'string' ? i.fanControlPath.trim() : base.fanControlPath
   const pm = typeof i.presentMonPath === 'string' ? i.presentMonPath.trim() : base.presentMonPath
   return {
     language: oneOf(i.language, ['en', 'he'] as const, base.language),
@@ -125,6 +129,7 @@ export function sanitizeSettings(input: unknown, base: Settings = DEFAULT_SETTIN
         fps: bool(om.fps, base.overlay.metrics.fps)
       }
     },
-    presentMonPath: pm.length <= 260 && (pm === '' || /\.exe$/i.test(pm)) ? pm : base.presentMonPath
+    presentMonPath: pm.length <= 260 && (pm === '' || /\.exe$/i.test(pm)) ? pm : base.presentMonPath,
+    fanControlPath: fc.length <= 260 && (fc === '' || /(^|[\\/])fancontrol\.exe$/i.test(fc)) ? fc : base.fanControlPath
   }
 }

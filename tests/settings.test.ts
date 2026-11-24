@@ -30,6 +30,11 @@ describe('sanitizeSettings', () => {
     expect(s.overlay.hotkey).toBe('Alt+Shift+F10')
     expect(s.presentMonPath).toBe('C:\\pm\\PresentMon.exe')
   })
+  it('only accepts a FanControl.exe path for fan control', () => {
+    expect(sanitizeSettings({ fanControlPath: 'C:\\Tools\\FanControl.exe' }).fanControlPath).toBe('C:\\Tools\\FanControl.exe')
+    expect(sanitizeSettings({ fanControlPath: 'C:\\Windows\\System32\\cmd.exe' }).fanControlPath).toBe('')
+    expect(sanitizeSettings({ fanControlPath: 'C:\\x\\NotFanControl.exe' }).fanControlPath).toBe('')
+  })
   it('rejects non-exe PresentMon paths', () => {
     expect(sanitizeSettings({ presentMonPath: 'C:\\evil.bat' }).presentMonPath).toBe('')
   })

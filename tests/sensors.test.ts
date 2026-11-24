@@ -111,3 +111,24 @@ describe('protected processes', () => {
     expect(isProtectedProcess('notepad.exe', 5555, 1)).toBe(false)
   })
 })
+
+import { resolveFanControl } from '../src/main/fancontrol'
+
+describe('FanControl detection', () => {
+  const none = { running: '', registry: '', winget: '' }
+  const has = (...ok: string[]) => (p: string) => ok.includes(p)
+  it('prefers the running process, then custom, registry, winget, common paths', () => {
+    const r = { running: 'C:\\FC\\FanControl.exe', registry: 'C:\\Program Files (x86)\\FanControl\\FanControl.exe', winget: '' }
+    expect(resolveFanControl(r, '', [], has(r.running, r.registry))).toMatchObject({ installed: true, running: true, path: r.running, source: 'running' })
+    expect(resolveFanControl({ ...none, registry: r.registry }, '', [], has(r.registry))).toMatchObject({ installed: true, running: false, source: 'registry' })
+    expect(resolveFanControl(none, 'D:\\tools\\FanControl.exe', [], has('D:\\tools\\FanControl.exe')).source).toBe('custom')
+    expect(resolveFanControl(none, '', ['C:\\Program Files\\FanControl\\FanControl.exe'], has('C:\\Program Files\\FanControl\\FanControl.exe')).source).toBe('common')
+  })
+  it('ignores non-FanControl executables and missing files', () => {
+    expect(resolveFanControl(none, 'C:\\evil.exe', [], () => true)).toMatchObject({ installed: false, path: '' })
+    expect(resolveFanControl({ ...none, registry: 'C:\\X\\FanControl.exe' }, '', [], () => false).installed).toBe(false)
+  })
+  it('reports running even when the process path is not readable', () => {
+    expect(resolveFanControl({ ...none, running: '?' }, '', [], () => false)).toMatchObject({ installed: true, running: true, path: '' })
+  })
+})

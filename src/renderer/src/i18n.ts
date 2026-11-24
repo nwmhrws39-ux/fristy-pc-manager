@@ -42,7 +42,16 @@ const en = {
   'set.metrics': 'Displayed information', 'set.presentmon': 'PresentMon path (for FPS)', 'set.presentmonNote': 'Optional. Download Intel PresentMon (console app) and paste the full path to the .exe. Requires administrator.',
   'set.compat': 'Compatibility', 'set.admin': 'Administrator mode', 'set.adminNote': 'Only needed for ending elevated processes, machine-wide startup entries, PresentMon FPS and some sensors.',
   'set.about': 'About', 'set.tl': 'Top left', 'set.tr': 'Top right', 'set.bl': 'Bottom left', 'set.br': 'Bottom right', 'set.fps': 'FPS', 'set.fpsStatus': 'FPS provider',
-  'set.safety': 'FRISTY never changes BIOS, voltage or clock settings and never disables Windows security features.'
+  'set.safety': 'FRISTY never changes BIOS, voltage or clock settings and never disables Windows security features.',
+  'nav.cooling': 'Cooling',
+  'cool.title': 'Cooling & Fans', 'cool.readings': 'Fan readings', 'cool.gpuFans': 'Graphics card fans', 'cool.noReadings': 'No fan readings. Fan speeds are read from LibreHardwareMonitor (motherboard/CPU fans) and nvidia-smi (NVIDIA fans).',
+  'cool.fc': 'Fan control (FanControl)', 'cool.fcAbout': 'FRISTY controls fans through FanControl, a free open-source fan controller built on LibreHardwareMonitor. You set fan curves there (for example by CPU or GPU temperature); FRISTY never writes to fan hardware directly.',
+  'cool.installed': 'Installed', 'cool.notInstalled': 'Not installed', 'cool.running': 'Running', 'cool.notRunning': 'Not running', 'cool.open': 'Open FanControl', 'cool.install': 'Install (winget)', 'cool.website': 'Official website',
+  'cool.checking': 'Checking…', 'cool.unsupported': 'Fan control is only available on Windows.', 'cool.path': 'Custom FanControl.exe path (optional)', 'cool.save': 'Save',
+  'cool.steps': 'How to set up', 'cool.s1': 'Install FanControl (button above, or download from the official website).', 'cool.s2': 'Open it — Windows asks for administrator permission, which FanControl needs to talk to the fan controller.',
+  'cool.s3': 'Follow its first-run wizard to detect your fans, then create curves (for example CPU temperature → CPU fan).', 'cool.s4': 'In FanControl Settings enable "Start with Windows" so your curves apply after every restart.',
+  'cool.safety': 'Keep a safe minimum speed in your curves. Some fans can stop completely at low percentages; FanControl will warn about fans it cannot control (laptops and some prebuilt PCs lock fan control in the BIOS/EC).',
+  'cool.coexist': 'Tip: FanControl and LibreHardwareMonitor can run together; keep LibreHardwareMonitor running so FRISTY can still show temperatures and fan RPM.',
 }
 
 export type I18nKey = keyof typeof en
@@ -91,7 +100,16 @@ const he: Record<I18nKey, string> = {
   'set.metrics': 'מידע מוצג', 'set.presentmon': 'נתיב PresentMon (עבור FPS)', 'set.presentmonNote': 'אופציונלי. הורד את Intel PresentMon (גרסת קונסולה) והדבק את הנתיב המלא לקובץ ה-exe. דורש הרשאות מנהל.',
   'set.compat': 'תאימות', 'set.admin': 'מצב מנהל', 'set.adminNote': 'נדרש רק לסיום תהליכים מוגבהים, רשומות הפעלה ברמת המחשב, FPS דרך PresentMon וחלק מהחיישנים.',
   'set.about': 'אודות', 'set.tl': 'למעלה משמאל', 'set.tr': 'למעלה מימין', 'set.bl': 'למטה משמאל', 'set.br': 'למטה מימין', 'set.fps': 'FPS', 'set.fpsStatus': 'ספק FPS',
-  'set.safety': 'FRISTY לעולם אינו משנה הגדרות BIOS, מתח או תדרים ואינו משבית תכונות אבטחה של Windows.'
+  'set.safety': 'FRISTY לעולם אינו משנה הגדרות BIOS, מתח או תדרים ואינו משבית תכונות אבטחה של Windows.',
+  'nav.cooling': 'קירור',
+  'cool.title': 'קירור ומאווררים', 'cool.readings': 'קריאות מאווררים', 'cool.gpuFans': 'מאווררי כרטיס מסך', 'cool.noReadings': 'אין קריאות מאווררים. מהירות המאווררים נקראת מ-LibreHardwareMonitor (מאווררי לוח אם/מעבד) ומ-nvidia-smi (מאווררי NVIDIA).',
+  'cool.fc': 'שליטה במאווררים (FanControl)', 'cool.fcAbout': 'FRISTY שולט במאווררים דרך FanControl — תוכנה חינמית בקוד פתוח שמבוססת על LibreHardwareMonitor. את עקומות המאווררים מגדירים שם (למשל לפי טמפרטורת המעבד או כרטיס המסך); FRISTY לעולם לא כותב ישירות לחומרת המאווררים.',
+  'cool.installed': 'מותקן', 'cool.notInstalled': 'לא מותקן', 'cool.running': 'פועל', 'cool.notRunning': 'לא פועל', 'cool.open': 'פתח את FanControl', 'cool.install': 'התקן (winget)', 'cool.website': 'אתר רשמי',
+  'cool.checking': 'בודק…', 'cool.unsupported': 'שליטה במאווררים זמינה רק ב-Windows.', 'cool.path': 'נתיב מותאם ל-FanControl.exe (אופציונלי)', 'cool.save': 'שמור',
+  'cool.steps': 'איך מגדירים', 'cool.s1': 'התקן את FanControl (בכפתור למעלה, או הורדה מהאתר הרשמי).', 'cool.s2': 'פתח אותו — Windows יבקש הרשאת מנהל, ש-FanControl צריך כדי לתקשר עם בקר המאווררים.',
+  'cool.s3': 'עבור על אשף ההפעלה הראשונה לזיהוי המאווררים, ואז צור עקומות (למשל טמפרטורת מעבד ← מאוורר מעבד).', 'cool.s4': 'בהגדרות של FanControl הפעל "Start with Windows" כדי שהעקומות יופעלו אחרי כל הפעלה מחדש.',
+  'cool.safety': 'השאר מהירות מינימלית בטוחה בעקומות. חלק מהמאווררים נעצרים לגמרי באחוזים נמוכים; FanControl יתריע על מאווררים שאי אפשר לשלוט בהם (במחשבים ניידים ובחלק מהמחשבים המוכנים השליטה נעולה ב-BIOS).',
+  'cool.coexist': 'טיפ: אפשר להריץ את FanControl ו-LibreHardwareMonitor יחד; השאר את LibreHardwareMonitor פועל כדי ש-FRISTY ימשיך להציג טמפרטורות ומהירות מאווררים.',
 }
 
 export const dictionaries = { en, he }
