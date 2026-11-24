@@ -1,0 +1,73 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: 10 10 15;
+  --panel: 20 20 28;
+  --panel2: 28 28 38;
+  --line: 44 44 58;
+  --fg: 236 236 244;
+  --muted: 150 150 170;
+  --accent: 139 92 246;
+  --ok: 12 163 12;
+  --warn: 250 178 35;
+  --bad: 230 103 103;
+  /* chart series (validated: dark surface, CVD-safe adjacent pairs) */
+  --s1: #9085e9;
+  --s2: #199e70;
+  --s3: #d95926;
+  --grid: rgba(255, 255, 255, 0.06);
+  color-scheme: dark;
+}
+:root.light {
+  --bg: 244 244 248;
+  --panel: 255 255 255;
+  --panel2: 240 240 246;
+  --line: 222 222 232;
+  --fg: 24 24 32;
+  --muted: 100 100 118;
+  --ok: 0 131 0;
+  --warn: 196 120 0;
+  --bad: 205 50 50;
+  --s1: #6250d6;
+  --s2: #1baf7a;
+  --s3: #eb6834;
+  --grid: rgba(0, 0, 0, 0.07);
+  color-scheme: light;
+}
+
+html, body, #root { height: 100%; }
+body {
+  margin: 0;
+  background: rgb(var(--bg));
+  color: rgb(var(--fg));
+  font-family: 'Segoe UI Variable', 'Segoe UI', system-ui, sans-serif;
+  font-size: 13px;
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+  overflow: hidden;
+}
+body.overlay { background: transparent; }
+[dir='rtl'] body { font-family: 'Segoe UI', 'Arial Hebrew', system-ui, sans-serif; }
+
+.drag { -webkit-app-region: drag; }
+.no-drag { -webkit-app-region: no-drag; }
+.selectable { user-select: text; }
+.tabular { font-variant-numeric: tabular-nums; }
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: rgb(var(--line)); border-radius: 8px; border: 2px solid rgb(var(--bg)); }
+::-webkit-scrollbar-track { background: transparent; }
+
+@layer components {
+.card { @apply rounded-xl2 border border-line/70 bg-panel; }
+.btn { @apply inline-flex items-center gap-1.5 rounded-lg border border-line bg-panel2 px-3 py-1.5 text-[12.5px] font-medium text-fg transition hover:border-accent/60 hover:bg-accent/10 disabled:opacity-40 disabled:pointer-events-none; }
+.btn-accent { @apply border-accent/70 bg-accent text-white hover:bg-accent/85; }
+.btn-danger { @apply border-bad/50 text-bad hover:bg-bad/10 hover:border-bad; }
+.input { @apply rounded-lg border border-line bg-panel2 px-3 py-1.5 text-[13px] text-fg outline-none focus:border-accent; }
+.label { @apply text-[11.5px] uppercase tracking-wide text-muted; }
+}
+
+input[type='range'] { accent-color: rgb(var(--accent)); }
+.recharts-wrapper:focus, .recharts-surface:focus { outline: none; }

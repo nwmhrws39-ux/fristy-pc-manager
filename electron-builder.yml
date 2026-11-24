@@ -1,0 +1,38 @@
+appId: com.fristy.pcmanager
+productName: FRISTY PC Manager
+copyright: Copyright © 2026 FRISTY
+directories:
+  output: dist
+  buildResources: build
+files:
+  - out/**/*
+  - package.json
+  - "!**/*.map"
+asarUnpack:
+  - node_modules/sql.js/dist/sql-wasm.wasm
+extraResources:
+  - from: resources/
+    to: resources/
+    filter: ["**/*"]
+win:
+  target:
+    - target: nsis
+      arch: [x64]
+  icon: build/icon.ico
+  executableName: FRISTY PC Manager
+  # Run as the normal user; elevation is requested per-action only when needed.
+  requestedExecutionLevel: asInvoker
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: FRISTY PC Manager
+  uninstallDisplayName: FRISTY PC Manager
+  installerIcon: build/icon.ico
+  uninstallerIcon: build/icon.ico
+  artifactName: FRISTY-PC-Manager-Setup-${version}.exe
+  deleteAppDataOnUninstall: false
+# No auto-update server: do not generate update metadata.
+publish: null
