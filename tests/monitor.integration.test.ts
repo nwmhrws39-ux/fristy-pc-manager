@@ -18,7 +18,7 @@ describe('real monitoring on this machine', () => {
     const snaps: Snapshot[] = []
     m.on('snapshot', (s: Snapshot) => snaps.push(s))
     m.configure(1000, false)
-    await new Promise((r) => setTimeout(r, 4500))
+    await new Promise((r) => setTimeout(r, 8000))
     m.stop()
     expect(snaps.length).toBeGreaterThanOrEqual(2)
     const s = snaps[snaps.length - 1]
@@ -30,7 +30,7 @@ describe('real monitoring on this machine', () => {
     expect(s.cpu.tempC === null || (s.cpu.tempC > 0 && s.cpu.tempC < 125)).toBe(true)
     for (const g of s.gpus) expect(g.util === null || (g.util >= 0 && g.util <= 100)).toBe(true)
     expect(s.uptimeSec).toBeGreaterThan(0)
-  }, 30000)
+  }, 40000)
 
   it('lists processes and refuses to kill protected ones', async () => {
     const l = await listProcesses()

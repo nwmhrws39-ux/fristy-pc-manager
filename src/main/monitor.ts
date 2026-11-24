@@ -247,27 +247,38 @@ export class Monitor extends EventEmitter {
     }
   }
 
+  private fsBusy = false
+  private async refreshFs(): Promise<void> {
+    if (this.fsBusy) return
+    this.fsBusy = true
+    try {
+      const fs = await withTimeout(si.fsSize(), 30000, null)
+      if (fs) {
+        this.fsCache = fs
+          .filter((f) => f.size > 0 && !/^(tmpfs|devtmpfs|squashfs|overlay|efivarfs)$/i.test(f.type))
+          .map((f) => ({ mount: f.mount, label: f.fs, type: f.type, size: f.size, used: f.used, available: f.available, percent: f.size ? (f.used / f.size) * 100 : 0 }))
+      }
+    } finally {
+      this.fsAt = Date.now()
+      this.fsBusy = false
+    }
+  }
+
   private async collect(): Promise<Snapshot> {
     this.tickCount++
     const statics = await withTimeout(this.getStatic(), 1500, this.staticInfo)
     const budget = Math.max(900, this.intervalMs - 100)
-    const needFs = Date.now() - this.fsAt > (this.background ? 60000 : 15000)
-    const [load, mem, net, nv, fs, temp, ioLinux, time] = await Promise.all([
+    // Volume sizes are slow on Windows (PowerShell); refresh them in the background, never inside the tick.
+    if (Date.now() - this.fsAt > (this.background ? 60000 : 15000)) void this.refreshFs()
+    const [load, mem, net, nv, temp, ioLinux, time] = await Promise.all([
       withTimeout(si.currentLoad(), budget, null),
       withTimeout(si.mem(), budget, null),
       withTimeout(si.networkStats('*'), budget, [] as si.Systeminformation.NetworkStatsData[]),
       withTimeout(queryNvidia(), budget, [] as NvidiaGpu[]),
-      needFs ? withTimeout(si.fsSize(), 10000, null) : Promise.resolve(null),
       !isWin ? withTimeout(si.cpuTemperature(), budget, null) : Promise.resolve(null),
       !isWin && !this.background ? withTimeout(si.disksIO(), budget, null) : Promise.resolve(null),
       Promise.resolve(si.time())
     ])
-    if (fs) {
-      this.fsCache = fs
-        .filter((f) => f.size > 0 && !/^(tmpfs|devtmpfs|squashfs|overlay|efivarfs)$/i.test(f.type))
-        .map((f) => ({ mount: f.mount, label: f.fs, type: f.type, size: f.size, used: f.used, available: f.available, percent: f.size ? (f.used / f.size) * 100 : 0 }))
-      this.fsAt = Date.now()
-    }
 
     const ws = this.sampler.fresh()
     const lhm = ws?.lhm?.s?.length ? parseLhm(ws.lhm.s, ws.lhm.h ?? []) : null
