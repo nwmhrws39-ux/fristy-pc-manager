@@ -23,6 +23,7 @@ export const IPC = {
   relaunchAdmin: 'app:relaunchAdmin',
   overlayCompat: 'overlay:compat',
   resolvePresentMon: 'fps:resolve',
+  grantFpsAccess: 'fps:grant',
   presentMonWebsite: 'fps:website',
   fanControlStatus: 'fan:status',
   fanControlLaunch: 'fan:launch',

@@ -122,7 +122,7 @@ export function Overview() {
           <div className="space-y-3">
             <Stat label={t('ov.uptime')} value={duration(snap.uptimeSec, settings.language)} />
             <Stat label={t('ov.power')} value={watts(snap.powerW)} sub={t('ov.powerNote')} icon={Zap} />
-            {settings.presentMonPath && <Stat label={t('fps.fps')} value={snap.fps !== null ? String(snap.fps) : 'N/A'} icon={Gamepad2} />}
+            {settings.fpsEnabled && <Stat label={t('fps.fps')} value={snap.fps !== null ? String(snap.fps) : 'N/A'} icon={Gamepad2} />}
           </div>
         </Card>
       </div>

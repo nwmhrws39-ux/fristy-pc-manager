@@ -26,6 +26,32 @@ jobs:
       - name: Tests (real hardware reads on the Windows runner)
         run: npm test
 
+      # Bundle the official Intel PresentMon console app (MIT) so FPS works out of the box.
+      - name: Bundle PresentMon console (FPS)
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PRESENTMON_TAG: v2.6.1
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $names = gh release view $env:PRESENTMON_TAG --repo GameTechDev/PresentMon --json assets --jq '.assets[].name'
+          $asset = $names | Where-Object { $_ -match '^PresentMon-[\d.]+-x64\.exe$' } | Select-Object -First 1
+          if (-not $asset) { throw "PresentMon console asset not found. Assets: $($names -join ', ')" }
+          gh release download $env:PRESENTMON_TAG --repo GameTechDev/PresentMon --pattern $asset --dir $env:RUNNER_TEMP --clobber
+          New-Item -ItemType Directory -Force resources/presentmon | Out-Null
+          Move-Item (Join-Path $env:RUNNER_TEMP $asset) resources/presentmon/PresentMon.exe -Force
+          $sig = Get-AuthenticodeSignature resources/presentmon/PresentMon.exe
+          Write-Host "Asset: $asset  SHA256: $((Get-FileHash resources/presentmon/PresentMon.exe).Hash)"
+          Write-Host "Signature: $($sig.Status) / $($sig.SignerCertificate.Subject)"
+          if ($sig.Status -ne 'Valid' -or $sig.SignerCertificate.Subject -notmatch 'Intel') { throw 'PresentMon signature is not a valid Intel signature' }
+
+      - name: Smoke-test PresentMon output format
+        shell: pwsh
+        run: |
+          $out = & resources/presentmon/PresentMon.exe --output_stdout --no_console_stats --stop_existing_session --session_name FristyCI --timed 3 --terminate_after_timed 2>&1 | Select-Object -First 3
+          Write-Host ($out -join "`n")
+          if (-not ($out -match 'Application') -or -not ($out -match 'MsBetweenPresents|FrameTime')) { throw 'PresentMon CSV header does not contain the columns FRISTY reads' }
+
       - name: Build installer
         run: npm run dist:win
 

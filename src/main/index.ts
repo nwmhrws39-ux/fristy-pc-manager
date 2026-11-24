@@ -14,6 +14,7 @@ import { listProcesses, killProcess, findProcess } from './processes'
 import { AlertEngine } from './alerts'
 import { OverlayWindow, overlayCompat } from './overlay'
 import { PRESENTMON_RELEASES, resolvePresentMonOnDisk } from './sensors/fps'
+import { checkPerfAccess, grantPerfAccess, PerfAccess } from './perfAccess'
 import { specsToText } from './specs'
 import { isTrustedRendererUrl } from './security'
 import { FANCONTROL_SITE, fanControlStatus, installFanControl, launchFanControl } from './fancontrol'
@@ -151,6 +152,22 @@ function showMain(): void {
 function reconfigureMonitor(): void {
   const visible = !!mainWindow && mainWindow.isVisible() && !mainWindow.isMinimized()
   monitor.configure(settings.get().refreshMs, !visible && !overlay.visible)
+  updateFps(visible || overlay.visible)
+}
+
+// ---------- FPS (bundled PresentMon console app) ----------
+const bundledPresentMon = path.join(resourcesDir, 'presentmon', 'PresentMon.exe')
+let perfAccess: PerfAccess = { active: false, pendingSignOut: false, account: '' }
+function presentMonPath(): string {
+  const s = settings.get()
+  return s.presentMonPath || (fs.existsSync(bundledPresentMon) ? bundledPresentMon : '')
+}
+/** PresentMon only runs while someone can see FPS (window or overlay) — no tracing in the background. */
+function updateFps(foreground: boolean): void {
+  const s = settings.get()
+  const p = presentMonPath()
+  if (s.fpsEnabled && p && foreground) monitor.fps.start(p, isAdmin || perfAccess.active)
+  else monitor.fps.stop()
 }
 
 monitor.on('snapshot', (s: Snapshot) => {
@@ -171,9 +188,6 @@ function applySettings(patch: unknown): Settings {
   const s = settings.update(patch)
   if (app.isPackaged && isWin && prev.startWithWindows !== s.startWithWindows) app.setLoginItemSettings({ openAtLogin: s.startWithWindows, args: ['--hidden'] })
   overlay.apply(s)
-  // FPS runs whenever PresentMon is configured (shown on the Overview page and in the overlay).
-  if (s.presentMonPath) monitor.fps.start(s.presentMonPath, isAdmin)
-  else monitor.fps.stop()
   if (registeredHotkey !== s.overlay.hotkey) {
     if (registeredHotkey) globalShortcut.unregister(registeredHotkey)
     registeredHotkey = globalShortcut.register(s.overlay.hotkey, () => applySettings({ overlay: { enabled: !settings.get().overlay.enabled } })) ? s.overlay.hotkey : ''
@@ -293,7 +307,22 @@ function registerIpc(): void {
     app.quit()
     return { ok: true }
   })
-  handle(IPC.overlayCompat, none, () => ({ ...overlayCompat(), fpsStatus: monitor.fps.status, fpsCode: monitor.fps.code, fpsError: monitor.fps.error, fpsApp: monitor.fps.app }))
+  handle(IPC.overlayCompat, none, () => ({ ...overlayCompat(), fpsStatus: monitor.fps.status, fpsCode: monitor.fps.code, fpsError: monitor.fps.error, fpsApp: monitor.fps.app, fpsBundled: fs.existsSync(bundledPresentMon), fpsPath: presentMonPath(), perfAccess, isAdmin }))
+  handle(IPC.grantFpsAccess, none, async (): Promise<ActionResult> => {
+    const he = settings.get().language === 'he'
+    const ok = await confirm(
+      he ? 'להפעיל FPS בלי הרשאות מנהל?' : 'Enable FPS without administrator rights?',
+      he
+        ? `Windows יבקש אישור פעם אחת. החשבון ${perfAccess.account} יתווסף לקבוצה המובנית "Performance Log Users", שמאפשרת לקרוא נתוני ביצועים (ETW) — זו השיטה ש-Intel ממליצה עליה ל-PresentMon. השינוי ייכנס לתוקף אחרי התנתקות והתחברות מחדש ל-Windows.`
+        : `Windows will ask for permission once. The account ${perfAccess.account} will be added to the built-in "Performance Log Users" group, which allows reading performance (ETW) data — the method Intel documents for PresentMon. It takes effect after you sign out of Windows and back in.`,
+      he ? 'אפשר' : 'Allow'
+    )
+    if (!ok) return { ok: false, error: 'cancelled' }
+    const r = await grantPerfAccess(perfAccess.account)
+    perfAccess = await checkPerfAccess()
+    reconfigureMonitor()
+    return r
+  })
   handle(IPC.resolvePresentMon, (a) => (a.length === 1 && typeof a[0] === 'string' && a[0].length <= 300 ? [a[0]] : null), (input: string) => resolvePresentMonOnDisk(input))
   handle(IPC.presentMonWebsite, none, async () => (await shell.openExternal(PRESENTMON_RELEASES), { ok: true }))
   handle(IPC.fanControlStatus, none, () => fanControlStatus(settings.get().fanControlPath))
@@ -345,6 +374,7 @@ app.whenReady().then(async () => {
   }
   applySettings({})
   void monitor.getStatic()
+  if (isWin && !isAdmin) void checkPerfAccess().then((a) => ((perfAccess = a), reconfigureMonitor()))
 })
 
 app.on('second-instance', showMain)

@@ -22,7 +22,8 @@ export interface FristyApi {
   getSettings(): Promise<Settings>
   setSettings(patch: DeepPartial<Settings>): Promise<Settings>
   relaunchAdmin(): Promise<ActionResult>
-  overlayCompat(): Promise<OverlayCompat & { fpsStatus: string; fpsCode: 'off' | 'running' | 'not-found' | 'gui-app' | 'needs-admin' | 'failed'; fpsError: string; fpsApp: string }>
+  overlayCompat(): Promise<OverlayCompat & { fpsStatus: string; fpsCode: 'off' | 'running' | 'not-found' | 'gui-app' | 'needs-admin' | 'failed'; fpsError: string; fpsApp: string; fpsBundled: boolean; fpsPath: string; perfAccess: { active: boolean; pendingSignOut: boolean; account: string }; isAdmin: boolean }>
+  grantFpsAccess(): Promise<ActionResult>
   resolvePresentMon(input: string): Promise<{ ok: boolean; path: string; code?: string }>
   presentMonWebsite(): Promise<ActionResult>
   fanControlStatus(): Promise<FanControlStatus>

@@ -34,7 +34,9 @@ export interface Settings {
     hotkey: string
     metrics: { cpu: boolean; gpu: boolean; cpuTemp: boolean; gpuTemp: boolean; ram: boolean; vram: boolean; fps: boolean }
   }
-  /** Optional path to Intel PresentMon CLI (ETW based, no injection) used only for FPS readings. */
+  /** Show FPS (uses the PresentMon console app bundled with FRISTY). */
+  fpsEnabled: boolean
+  /** Optional custom path to Intel PresentMon CLI (ETW based, no injection) used only for FPS readings. */
   presentMonPath: string
   /** Optional custom path to FanControl.exe when it isn't found automatically. */
   fanControlPath: string
@@ -67,6 +69,7 @@ export const DEFAULT_SETTINGS: Settings = {
     hotkey: 'CommandOrControl+Shift+O',
     metrics: { cpu: true, gpu: true, cpuTemp: true, gpuTemp: true, ram: true, vram: true, fps: true }
   },
+  fpsEnabled: true,
   presentMonPath: '',
   fanControlPath: ''
 }
@@ -129,6 +132,7 @@ export function sanitizeSettings(input: unknown, base: Settings = DEFAULT_SETTIN
         fps: bool(om.fps, base.overlay.metrics.fps)
       }
     },
+    fpsEnabled: bool(i.fpsEnabled, base.fpsEnabled),
     presentMonPath: pm.length <= 260 && (pm === '' || /\.exe$/i.test(pm)) ? pm : base.presentMonPath,
     fanControlPath: fc.length <= 260 && (fc === '' || /(^|[\\/])fancontrol\.exe$/i.test(fc)) ? fc : base.fanControlPath
   }

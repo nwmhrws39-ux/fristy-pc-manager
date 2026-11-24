@@ -50,13 +50,14 @@ export function SettingsPage() {
     setPm(r.path)
     await setSettings({ presentMonPath: r.path })
     toast(r.path ? `✓ ${r.path}` : '✓')
-    setTimeout(() => void api.overlayCompat().then(setCompat), 2500)
+    setTimeout(refreshCompat, 2500)
   }
+  const refreshCompat = () => void api.overlayCompat().then(setCompat)
   useEffect(() => {
-    if (!s.presentMonPath) return
-    const id = setInterval(() => void api.overlayCompat().then(setCompat), 3000)
+    if (!s.fpsEnabled) return
+    const id = setInterval(refreshCompat, 3000)
     return () => clearInterval(id)
-  }, [s.presentMonPath])
+  }, [s.fpsEnabled])
 
   const unit = s.tempUnit
   // Temperature thresholds are stored in °C; displayed/entered in the selected unit.
@@ -153,24 +154,38 @@ export function SettingsPage() {
             </div>
             <div className="space-y-3">
               <div>
-                <div className="label mb-1">{t('set.presentmon')}</div>
-                <div className="flex gap-2">
-                  <input className="input flex-1 font-mono text-[12px]" dir="ltr" placeholder="C:\Tools\PresentMon-2.3.1-x64.exe" value={pm} onChange={(e) => setPm(e.target.value)} />
-                  <button className="btn" onClick={() => void savePm()}>{t('cool.save')}</button>
-                </div>
-                <div className="mt-1 text-[11.5px] text-muted">{t('set.presentmonNote')}</div>
-                {compat && s.presentMonPath && (
-                  <div className={`mt-2 rounded-lg border px-3 py-2 text-[12px] ${compat.fpsCode === 'running' ? 'border-ok/40' : 'border-bad/40'}`}>
-                    <div>{t('set.fpsStatus')}: <span className={compat.fpsCode === 'running' ? 'text-ok' : 'text-bad'}>{t(`fps.${compat.fpsCode}` as I18nKey)}</span>{compat.fpsApp ? ` (${compat.fpsApp})` : ''}</div>
-                    {compat.fpsCode === 'failed' && compat.fpsError && <div className="mt-1 font-mono text-[11px] text-muted" dir="ltr">{compat.fpsError}</div>}
+                <Toggle label={t('fps.show')} checked={s.fpsEnabled} onChange={(v) => void setSettings({ fpsEnabled: v }).then(() => setTimeout(refreshCompat, 1500))} disabled={!app?.isWindows} />
+                {app?.isWindows && s.fpsEnabled && compat && (
+                  <div className={`mt-1 space-y-2 rounded-lg border px-3 py-2 text-[12px] ${compat.fpsCode === 'running' ? 'border-ok/40' : 'border-warn/40'}`}>
+                    <div>
+                      {t('set.fpsStatus')}: <span className={compat.fpsCode === 'running' ? 'text-ok' : 'text-warn'}>
+                        {compat.fpsCode === 'needs-admin' && compat.perfAccess.pendingSignOut ? t('fps.signout') : t(`fps.${compat.fpsCode}` as I18nKey)}
+                      </span>
+                      {compat.fpsCode === 'running' && <span className="text-muted"> — {compat.fpsApp || t('fps.noGame')}</span>}
+                    </div>
+                    {compat.fpsCode === 'failed' && compat.fpsError && <div className="font-mono text-[11px] text-muted" dir="ltr">{compat.fpsError}</div>}
+                    {compat.fpsCode === 'needs-admin' && !compat.perfAccess.pendingSignOut && (
+                      <div className="flex flex-wrap gap-2">
+                        <button className="btn btn-accent" onClick={() => void api.grantFpsAccess().then((r) => { if (r.ok) toast(t('fps.signout')); else if (r.error !== 'cancelled') toast(r.error ?? '', 'err'); refreshCompat() })}>
+                          <ShieldCheck size={14} /> {t('fps.grant')}
+                        </button>
+                        <button className="btn" onClick={() => void api.relaunchAdmin().then((r) => !r.ok && r.error !== 'cancelled' && toast(r.error ?? '', 'err'))}>{t('common.restartAdmin')}</button>
+                      </div>
+                    )}
                   </div>
                 )}
-                <div className="mt-2 flex flex-wrap gap-2">
-                  <button className="btn" onClick={() => void api.presentMonWebsite()}><Download size={14} /> {t('fps.download')}</button>
-                  {app?.isWindows && !app.isAdmin && s.presentMonPath && (
-                    <button className="btn" onClick={() => void api.relaunchAdmin().then((r) => !r.ok && r.error !== 'cancelled' && toast(r.error ?? '', 'err'))}><ShieldCheck size={14} /> {t('common.restartAdmin')}</button>
-                  )}
-                </div>
+                <details className="mt-3">
+                  <summary className="cursor-pointer text-[12px] text-muted">{t('fps.advanced')}</summary>
+                  <div className="mt-2">
+                    <div className="label mb-1">{t('set.presentmon')}</div>
+                    <div className="flex gap-2">
+                      <input className="input flex-1 font-mono text-[12px]" dir="ltr" placeholder={compat?.fpsBundled ? t('fps.bundledPlaceholder') : 'C:\\Tools\\PresentMon-2.6.1-x64.exe'} value={pm} onChange={(e) => setPm(e.target.value)} />
+                      <button className="btn" onClick={() => void savePm()}>{t('cool.save')}</button>
+                    </div>
+                    <div className="mt-1 text-[11.5px] text-muted">{t('set.presentmonNote')}</div>
+                    <button className="btn mt-2" onClick={() => void api.presentMonWebsite()}><Download size={14} /> {t('fps.download')}</button>
+                  </div>
+                </details>
               </div>
               <div>
                 <div className="label mb-1">{t('set.compat')}</div>

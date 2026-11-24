@@ -45,7 +45,7 @@ export function overlayCompat(): OverlayCompat {
     'Supported: windowed and borderless-windowed (fullscreen windowed) games and desktop apps.',
     'Not supported: exclusive fullscreen DirectX/Vulkan games — they draw over every desktop window. Switch the game to borderless mode.',
     'Not supported: games running as administrator may hide non-elevated windows; protected/UWP full-screen experiences may also hide it.',
-    'FPS is only available when Intel PresentMon is configured (Settings → Overlay). PresentMon uses Windows ETW tracing and does not inject into games.',
+    'FPS uses Intel PresentMon (bundled), which reads Windows ETW events and does not inject into games. Windows needs a one-time permission (Settings → FPS) or administrator rights.',
     'FRISTY never injects code into games or interacts with anti-cheat systems.'
   ]
   return { supported: process.platform === 'win32', notes }

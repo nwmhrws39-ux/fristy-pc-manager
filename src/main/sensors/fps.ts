@@ -70,7 +70,8 @@ export class FpsMonitor {
     return this.code === 'off' ? 'off' : this.code === 'running' ? 'running' : 'error'
   }
 
-  start(exePath: string, isAdmin: boolean): void {
+  /** `canTrace`: running as admin, or the logon token has Performance Log Users. */
+  start(exePath: string, canTrace: boolean): void {
     if (process.platform !== 'win32' || !exePath) return this.stop()
     if (this.child && exePath === this.path) return
     this.stop()
@@ -78,7 +79,7 @@ export class FpsMonitor {
     if (isPresentMonGui(exePath)) return this.fail('gui-app', '')
     const r = resolvePresentMonOnDisk(exePath)
     if (!r.ok) return this.fail(r.code ?? 'not-found', '')
-    if (!isAdmin) return this.fail('needs-admin', '')
+    if (!canTrace) return this.fail('needs-admin', '')
     this.launch(r.path, ['--output_stdout', '--stop_existing_session', '--no_console_stats', '--session_name', 'FristyPM', '--exclude', 'dwm.exe'], true)
   }
 
@@ -154,9 +155,14 @@ export class FpsMonitor {
     return avg > 0 ? Math.round(1000 / avg) : null
   }
 
+  get running(): boolean {
+    return !!this.child
+  }
+
   stop(): void {
     const c = this.child
     this.child = null
+    this.path = ''
     this.code = 'off'
     this.error = ''
     this.app = ''
